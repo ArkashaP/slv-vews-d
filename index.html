@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Славе — лично в руки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============ БАЗА ============ */
+:root{
+  --ease-out:cubic-bezier(.22,1,.36,1);
+  --ease-long:cubic-bezier(.16,1,.3,1);
+  --ease-io:cubic-bezier(.65,0,.35,1);
+  --ease-in:cubic-bezier(.7,0,.84,0);
+}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',system-ui,sans-serif;background:#0a0a0c;color:#eee;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+img{max-width:100%;display:block}
+::selection{background:#ffd400;color:#111}
+
+/* система появления: длинная ликвидная кривая, никакого резкого всплытия */
+.fx{opacity:0;transform:translateY(36px);transition:opacity 1.05s var(--ease-long),transform 1.05s var(--ease-long),filter 1.05s var(--ease-long);transition-delay:var(--d,0ms);will-change:opacity,transform}
+.fx[data-fx="left"]{transform:translateX(-130px)}
+.fx[data-fx="right"]{transform:translateX(130px)}
+.fx[data-fx="scale"]{transform:scale(.86)}
+.fx[data-fx="blur"]{transform:none;filter:blur(12px)}
+/* тексты этапов: старт далеко за левым краем экрана */
+.fx[data-fx="far"],.p-text.fx{transform:translateX(min(-64vw,-430px));filter:blur(6px)}
+.fx.in{opacity:1;transform:none;filter:none}
+
+/* ============ ВУАЛЬ ПЕРЕХОДА ============ */
+#veil{position:fixed;inset:0;z-index:100;background:#070709;opacity:0;pointer-events:none;transition:opacity .8s var(--ease-io)}
+#veil.on{opacity:1;pointer-events:auto}
+#veil::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.045),transparent 60%)}
+
+/* ============ ГАЗЕТА (начальная сцена) ============ */
+.paper{--paper:#f3efe4;--ink:#17150f;--red:#c8102e;background:var(--paper);color:var(--ink);font-family:'Spectral',serif;position:relative}
+.paper-inner{max-width:880px;margin:0 auto;padding:0 22px 40px}
+.masthead{padding:22px 0 12px;border-bottom:3px double var(--ink);text-align:center}
+.mast-top{display:flex;justify-content:space-between;gap:10px;font:600 11px 'Oswald';letter-spacing:.16em;text-transform:uppercase;opacity:.72}
+.mast-title{font-family:'Oswald';font-weight:700;font-size:clamp(34px,7vw,62px);line-height:1;text-transform:uppercase;letter-spacing:.02em;margin:12px 0 4px}
+.molnia{display:inline-block;background:var(--red);color:#fff;font:700 12px 'Oswald';letter-spacing:.34em;padding:6px 14px 5px;transform:rotate(-2deg);animation:molnia 2.6s infinite;margin-bottom:8px}
+@keyframes molnia{0%,86%,100%{opacity:1}90%,94%{opacity:.3}}
+.mast-sub{font:600 12px 'Oswald';letter-spacing:.14em;text-transform:uppercase}
+.mast-sub b{color:var(--red)}
+.headline{font-family:'Oswald';font-weight:600;font-size:clamp(28px,5.6vw,52px);line-height:1.06;text-transform:uppercase;margin:26px 0 8px}
+.tags{display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap}
+.tag{font:600 11px 'Oswald';letter-spacing:.2em;text-transform:uppercase;border:1.5px solid var(--ink);padding:4px 10px}
+.tag.red{background:var(--red);border-color:var(--red);color:#fff}
+.byline{font-size:13px;opacity:.8;border-bottom:1px solid rgba(23,21,15,.25);padding-bottom:12px;margin-bottom:16px}
+.lead{font-size:18px;line-height:1.55;font-weight:500;margin-bottom:14px}
+.lead::first-letter{font-family:'Oswald';font-size:56px;font-weight:700;float:left;line-height:.86;padding:4px 8px 0 0;color:var(--red)}
+.col{font-size:16px;line-height:1.62;margin-bottom:14px;max-width:70ch}
+figure{margin:20px 0}
+.ph{border:1.5px solid var(--ink);filter:grayscale(.25) contrast(1.04);box-shadow:6px 6px 0 rgba(23,21,15,.14)}
+figcaption{font:600 11px 'Oswald';letter-spacing:.14em;text-transform:uppercase;padding-top:8px;opacity:.85}
+.quote{border-left:4px solid var(--red);padding:6px 0 6px 18px;font-style:italic;font-size:17px;line-height:1.55;margin:22px 0}
+.quote cite{display:block;font-style:normal;font-size:13px;opacity:.75;margin-top:8px}
+.comments{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:26px 0}
+.cmt{background:#fff;border:1.5px solid var(--ink);padding:12px 14px;font-size:14px;line-height:1.45;box-shadow:4px 4px 0 rgba(23,21,15,.12);transition:transform .5s var(--ease-long),box-shadow .5s var(--ease-long)}
+.cmt:hover{transform:translateY(-5px) rotate(-.6deg);box-shadow:6px 8px 0 rgba(23,21,15,.16)}
+.cmt b{display:block;font-size:12px;color:var(--red);margin-bottom:4px}
+.ticker{background:var(--ink);color:var(--paper);overflow:hidden;margin:30px -22px 0;padding:12px 0;position:relative}
+.ticker-track{display:flex;gap:60px;white-space:nowrap;font:500 13px 'Oswald';letter-spacing:.12em;text-transform:uppercase;width:max-content;animation:tick 26s linear infinite}
+.ticker-track span::before{content:"◆";color:var(--red);margin-right:12px}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ============ VOID ZONE (переход в черноту) ============ */
+.void-zone{position:relative;background:linear-gradient(to bottom, var(--paper) 0%, #2a2a2a 30%, #0a0a0a 60%, #000 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.void-text{position:absolute;font-family:'Unbounded';font-weight:600;font-size:clamp(28px,6vw,48px);color:#fff;opacity:0;transform:translateY(20px);transition:all 1.2s var(--ease-out);text-align:center}
+.void-text.visible{opacity:1;transform:translateY(0)}
+.void-text.fadeout{opacity:0;transform:translateY(-20px)}
+
+/* ============ ЭТАПЫ: каркас ============ */
+.stage{position:relative;min-height:100svh;padding:88px 22px 130px;display:flex;flex-direction:column;align-items:center;background:var(--bg);color:var(--ink);overflow:hidden}
+.stage[hidden]{display:none}
+.stage::before{content:"";position:absolute;inset:0;background:#070709;opacity:0;transition:opacity 1.1s var(--ease-io);pointer-events:none;z-index:9}
+.stage.noir::before{opacity:1;transition:none}
+.stage>*{position:relative;z-index:4}
+.stage .decor{position:absolute;inset:0;z-index:2;pointer-events:none}
+.stage-head{max-width:880px;width:100%;margin:0 auto 36px}
+.stage-head.lift{z-index:120}
+.stage-head .eyebrow{display:inline-block;font:600 12px 'Oswald';letter-spacing:.42em;text-transform:uppercase;color:var(--ac);opacity:0;transform:translateY(14px)}
+.stage-head h2{font-family:'Unbounded';font-weight:600;font-size:clamp(26px,4.6vw,44px);line-height:1.15;margin-top:12px;opacity:0;transform:translateY(30px);filter:blur(12px)}
+.stage-head .rule{height:3px;width:64px;background:var(--ac);margin-top:18px;transform:scaleX(0);transform-origin:left}
+.stage-head.reveal .eyebrow{animation:ebIn .8s var(--ease-out) forwards}
+.stage-head.reveal h2{animation:hIn 1.05s var(--ease-out) .18s forwards}
+.stage-head.reveal .rule{animation:ruleIn .9s var(--ease-out) .55s forwards}
+@keyframes ebIn{to{opacity:1;transform:none;letter-spacing:.22em}}
+@keyframes hIn{to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes ruleIn{to{transform:scaleX(1)}}
+.stage-body{max-width:880px;width:100%}
+.p-text{font-size:16.5px;line-height:1.65;max-width:62ch;margin-bottom:14px;opacity:.94}
+.p-text b{color:var(--ac)}
+
+/* кнопки */
+.btn{position:relative;display:inline-flex;align-items:center;gap:10px;padding:15px 30px;border-radius:999px;font-weight:700;font-size:15px;background:var(--ac);color:var(--onac,#101010);overflow:hidden;transition:transform .5s var(--ease-long),box-shadow .5s var(--ease-long),opacity .4s}
+.btn::after{content:"";position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .7s var(--ease-out)}
+.btn:hover{transform:translateY(-3px);box-shadow:0 14px 30px -10px color-mix(in srgb,var(--ac) 55%,transparent)}
+.btn:hover::after{left:130%}
+.btn:active{transform:translateY(0) scale(.96)}
+.btn.ghost{background:transparent;color:var(--ac);box-shadow:inset 0 0 0 2px var(--ac)}
+.pop{animation:popIn .7s var(--ease-out) both}
+@keyframes popIn{from{opacity:0;transform:scale(.7) translateY(14px)}to{opacity:1;transform:none}}
+
+/* ============ ЭТАП 1: ДОПУСК ============ */
+#s1{--bg:#14120e;--ink:#f3ead9;--ac:#e8b23d}
+.dossier{max-width:560px;margin:0 auto;background:#1c1811;border:1px solid rgba(232,178,61,.35);padding:34px 30px 40px;position:relative;box-shadow:0 30px 60px -30px rgba(0,0,0,.8)}
+.dossier::before,.dossier::after{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--ac);opacity:.7}
+.dossier::before{top:-2px;left:-2px;border-right:0;border-bottom:0}
+.dossier::after{bottom:-2px;right:-2px;border-left:0;border-top:0}
+.dossier-top{font:600 11px 'Oswald';letter-spacing:.3em;text-transform:uppercase;color:var(--ac);display:flex;justify-content:space-between;margin-bottom:18px}
+.redline{height:11px;background:rgba(243,234,217,.16);margin:9px 0;border-radius:2px;position:relative;overflow:hidden}
+.redline::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);transform:translateX(-100%);animation:shimmer 3.2s var(--ease-io) infinite}
+@keyframes shimmer{to{transform:translateX(100%)}}
+.pad{display:flex;flex-direction:column;align-items:center;gap:14px;margin:30px auto 8px}
+.fp-btn{position:relative;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#262013,#171309);border:1px solid rgba(232,178,61,.4);transition:transform .3s var(--ease-out);touch-action:none;-webkit-user-select:none;user-select:none}
+.fp-btn:active{transform:scale(.97)}
+.fp-ring{position:absolute;inset:0;transform:rotate(-90deg)}
+.fp-ring .tr{fill:none;stroke:rgba(232,178,61,.18);stroke-width:4}
+.fp-ring .pr{fill:none;stroke:var(--ac);stroke-width:4;stroke-linecap:round;stroke-dasharray:339.3;stroke-dashoffset:339.3}
+.fp-glyph{width:62px;height:62px;color:var(--ac);opacity:.9}
+.fp-pulse{position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(232,178,61,.5);animation:pulse 2s var(--ease-out) infinite}
+@keyframes pulse{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+.fp-btn.ok .fp-pulse{display:none}
+.fp-btn.ok{border-color:#7ddb8a}
+.fp-btn.ok .fp-glyph{color:#7ddb8a}
+.pad-hint{font-size:13px;letter-spacing:.08em;opacity:.7;text-transform:uppercase}
+.pad-pct{font-family:'Unbounded';font-size:22px;color:var(--ac)}
+.stamp{position:absolute;top:44%;left:50%;transform:translate(-50%,-50%) rotate(-14deg) scale(1);border:4px solid #7ddb8a;color:#7ddb8a;font:800 26px 'Unbounded';letter-spacing:.1em;padding:10px 22px;border-radius:8px;background:rgba(10,14,8,.7);backdrop-filter:blur(2px);opacity:0;pointer-events:none;white-space:nowrap}
+.stamp.show{animation:stampIn .55s var(--ease-in) forwards}
+@keyframes stampIn{0%{opacity:0;transform:translate(-50%,-50%) rotate(6deg) scale(2.6)}70%{opacity:1;transform:translate(-50%,-50%) rotate(-16deg) scale(.94)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
+.s1-next{display:flex;justify-content:center;margin-top:34px}
+
+/* ============ ЭТАП 2: ИГРОВОЙ ЗАЛ ============ */
+#s2{--bg:#0e0f13;--ink:#f2f3f7;--ac:#ff4554}
+#s2 .decor{background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:26px 26px}
+.seq{display:flex;gap:10px;justify-content:center;margin-bottom:26px}
+.seq .slot{width:46px;height:46px;border-radius:12px;border:2px dashed rgba(255,255,255,.25);display:grid;place-items:center;font:800 18px 'Unbounded';color:transparent;transition:all .45s var(--ease-long)}
+.seq .slot.done{border-style:solid;transform:translateY(-4px);color:#0d0d10}
+.seq.err{animation:shake .45s var(--ease-io)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.joy-card{max-width:420px;margin:0 auto;background:#16181d;border:1px solid rgba(255,255,255,.09);border-radius:26px;padding:34px;display:grid;grid-template-columns:repeat(3,76px);grid-template-rows:repeat(3,76px);gap:10px;justify-content:center;box-shadow:0 30px 60px -30px rgba(0,0,0,.9)}
+.gbtn{width:76px;height:76px;border-radius:50%;background:#0b0c10;border:2px solid var(--c);color:var(--c);font:800 24px 'Unbounded';display:grid;place-items:center;transition:transform .18s var(--ease-out),box-shadow .3s,background .3s}
+.gbtn:hover{box-shadow:0 0 24px color-mix(in srgb,var(--c) 45%,transparent)}
+.gbtn:active,.gbtn.hit{transform:scale(.88);background:var(--c);color:#0b0c10}
+.gx{grid-area:1/2;--c:#00c3e3}.gy{grid-area:2/1;--c:#ffd400}.ga{grid-area:2/3;--c:#ff4554}.gb{grid-area:3/2;--c:#78d94e}
+.s2-next{display:flex;justify-content:center;margin-top:34px}
+
+/* ============ ЭТАП 3: НЕЙРООТДЕЛ ============ */
+#s3{--bg:#100d1d;--ink:#ece9fb;--ac:#8f7bff}
+#s3 .decor{background:linear-gradient(rgba(143,123,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(143,123,255,.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 75%)}
+#s3 .decor::after{content:"";position:absolute;left:0;right:0;height:120px;background:linear-gradient(rgba(143,123,255,0),rgba(143,123,255,.08),rgba(143,123,255,0));animation:scan 7s linear infinite}
+@keyframes scan{from{top:-140px}to{top:110%}}
+.term{max-width:640px;margin:0 auto;background:#0a0817;border:1px solid rgba(143,123,255,.4);border-radius:14px;overflow:hidden;box-shadow:0 0 60px -20px rgba(143,123,255,.35)}
+.term-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(143,123,255,.12);font:600 11px 'JetBrains Mono';letter-spacing:.1em}
+.term-bar i{width:10px;height:10px;border-radius:50%}
+.term-bar i:nth-child(1){background:#ff5f57}.term-bar i:nth-child(2){background:#febc2e}.term-bar i:nth-child(3){background:#28c840}
+.term-bar span{margin-left:auto;opacity:.7}
+.term-body{padding:20px 22px;font-family:'JetBrains Mono';font-size:13.5px;line-height:1.75;min-height:230px;color:#b9b3e6}
+.term-body .ok{color:#86ff9e}
+.term-body .msg{color:#f5f2ff}
+.caret{display:inline-block;width:9px;height:16px;background:#86ff9e;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.temp{display:flex;align-items:center;gap:12px;max-width:640px;margin:18px auto 0;font:600 12px 'JetBrains Mono';opacity:.85}
+.temp .bar{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.temp .bar i{display:block;height:100%;width:55%;background:linear-gradient(90deg,#8f7bff,#ff6b9d);transition:width .8s var(--ease-out)}
+.s3-next{display:flex;justify-content:center;margin-top:30px}
+
+/* ============ ЭТАП 4: ГАРАЖ ============ */
+#s4{--bg:#131315;--ink:#f4f2ee;--ac:#ff8a1e}
+.ln{position:absolute;height:2px;background:linear-gradient(90deg,transparent,rgba(255,138,30,.55),transparent);width:140px;left:-160px;opacity:0}
+.stage.riding .ln{animation:ln var(--dur,1.1s) linear infinite;animation-delay:var(--del,0s)}
+@keyframes ln{0%{transform:translateX(0);opacity:0}12%{opacity:1}100%{transform:translateX(120vw);opacity:0}}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:22px;margin:6px auto 0}
+.gauge{width:min(320px,74vw);transition:transform .2s}
+.gauge.vibe{animation:vibe .12s linear infinite}
+@keyframes vibe{0%{transform:translate(0,0)}25%{transform:translate(1px,-1px)}50%{transform:translate(-1px,1px)}75%{transform:translate(1px,1px)}100%{transform:translate(-1px,0)}}
+.gauge .bg-arc{fill:none;stroke:rgba(255,255,255,.12);stroke-width:14;stroke-linecap:round}
+.gauge .fg-arc{fill:none;stroke:var(--ac);stroke-width:14;stroke-linecap:round;stroke-dasharray:439.8;stroke-dashoffset:439.8;filter:drop-shadow(0 0 8px rgba(255,138,30,.6))}
+.gauge .tick{stroke:rgba(255,255,255,.4);stroke-width:2}
+.gauge .needle{stroke:#fff;stroke-width:4;stroke-linecap:round;filter:drop-shadow(0 0 6px rgba(255,255,255,.5))}
+.gauge .hub{fill:#fff}
+.speedo{font-family:'Unbounded';font-size:30px}
+.speedo small{font-size:13px;opacity:.6;margin-left:6px}
+.gas{width:170px;height:170px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#2a2a2e,#141416);border:2px solid var(--ac);color:var(--ac);font:800 22px 'Unbounded';letter-spacing:.14em;box-shadow:0 0 0 0 rgba(255,138,30,.5);transition:transform .2s var(--ease-out);touch-action:none;-webkit-user-select:none;user-select:none}
+.gas:active{transform:scale(.94)}
+.gas.full{background:var(--ac);color:#131315;animation:fullPing 1.4s var(--ease-out) infinite}
+@keyframes fullPing{0%{box-shadow:0 0 0 0 rgba(255,138,30,.55)}100%{box-shadow:0 0 0 26px rgba(255,138,30,0)}}
+.gas-hint{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+.s4-next{display:flex;justify-content:center;margin-top:32px}
+
+/* ============ ЭТАП 5: ДОМ ============ */
+#s5{--bg:#f7ecdc;--ink:#3d2c1e;--ac:#d98324}
+#s5 .decor{background:radial-gradient(ellipse at 50% 0%,rgba(255,190,110,.4),transparent 55%)}
+.dust{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(217,131,36,.35);filter:blur(1px);animation:dust var(--dur,9s) ease-in-out infinite;animation-delay:var(--del,0s)}
+@keyframes dust{0%,100%{transform:translateY(0);opacity:.2}50%{transform:translateY(-46px);opacity:.8}}
+.env-scene{display:flex;flex-direction:column;align-items:center;gap:22px;margin:10px 0 0}
+.envelope{position:relative;width:min(300px,78vw);height:196px;perspective:900px;transition:transform .5s var(--ease-out)}
+.envelope:hover{transform:translateY(-6px)}
+.env-back{position:absolute;inset:0;background:#e8d3b4;border-radius:8px;box-shadow:0 24px 50px -20px rgba(61,44,30,.5)}
+.env-letter{position:absolute;left:7%;right:7%;top:8%;bottom:12%;background:#fffaf1;border-radius:4px;transition:transform 1s var(--ease-long);display:grid;place-items:center;font-family:'Unbounded';color:var(--ac);font-size:13px}
+.env-front{position:absolute;inset:0;border-radius:8px;background:linear-gradient(#f0ddc0,#e3cba4);clip-path:polygon(0 0,50% 46%,100% 0,100% 100%,0 100%)}
+.env-flap{position:absolute;left:0;right:0;top:0;height:52%;background:#dcc39c;border-radius:8px 8px 0 0;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .8s var(--ease-io);backface-visibility:hidden}
+.env-seal{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:var(--ac);color:#fff8ee;font:700 24px 'Spectral',serif;display:grid;place-items:center;box-shadow:0 4px 12px rgba(61,44,30,.4);transition:opacity .4s,transform .4s}
+.envelope.open .env-flap{transform:rotateX(180deg)}
+.envelope.open .env-seal{opacity:0;transform:translate(-50%,-50%) scale(.4)}
+.envelope.open .env-letter{transform:translateY(-72%) scale(1.06)}
+.letter-full{max-width:620px;margin:0 auto;background:#fffaf1;border-radius:10px;padding:36px 34px;box-shadow:0 30px 60px -25px rgba(61,44,30,.45);font-family:'Spectral';font-size:17px;line-height:1.7;transform-origin:top}
+.letter-full.unfold{animation:unfold .9s var(--ease-out) both}
+@keyframes unfold{from{opacity:0;transform:scaleY(.55) translateY(-20px)}to{opacity:1;transform:none}}
+.letter-full .sig{margin-top:18px;font-style:italic;color:var(--ac)}
+.cert{margin-top:26px;border:2px dashed var(--ac);border-radius:10px;padding:18px 20px;font-size:14px;line-height:1.55;position:relative;background:rgba(217,131,36,.06)}
+.cert b{font-family:'Unbounded';font-size:12px;letter-spacing:.14em;color:var(--ac);display:block;margin-bottom:8px}
+.cert .seal{position:absolute;right:14px;top:-16px;width:56px;height:56px;border-radius:50%;background:var(--ac);color:#fff8ee;display:grid;place-items:center;font-size:22px;transform:rotate(10deg) scale(0)}
+.cert.stamped .seal{animation:stampIn .5s var(--ease-in) .2s forwards}
+.s5-next{display:flex;justify-content:center;margin-top:32px}
+
+/* ============ ЭТАП 6: МЕДОТСЕК ============ */
+#s6{--bg:#edf6f2;--ink:#123a34;--ac:#0f9d8a}
+.rx{max-width:620px;margin:0 auto;background:#fff;border-radius:14px;padding:28px 26px 32px;box-shadow:0 26px 60px -28px rgba(18,58,52,.35);border-top:6px solid var(--ac)}
+.rx-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.rx-head .cross{width:34px;height:34px;border-radius:8px;background:#e2574c;color:#fff;display:grid;place-items:center;font-size:19px;font-weight:800}
+.rx-head b{font-family:'Unbounded';font-size:14px}
+.rx-head span{margin-left:auto;font:600 12px 'JetBrains Mono';opacity:.6}
+.rx-bar{height:6px;background:rgba(15,157,138,.15);border-radius:3px;margin:16px 0 20px;overflow:hidden}
+.rx-bar i{display:block;height:100%;width:0;background:var(--ac);border-radius:3px;transition:width .7s var(--ease-out)}
+.rx-item{display:flex;gap:14px;align-items:flex-start;padding:13px 12px;border-radius:10px;cursor:pointer;transition:background .45s var(--ease-long),transform .45s var(--ease-long)}
+.rx-item:hover{background:rgba(15,157,138,.07);transform:translateX(5px)}
+.rx-item .cb{flex:0 0 26px;height:26px;border-radius:7px;border:2px solid rgba(18,58,52,.35);display:grid;place-items:center;transition:all .45s var(--ease-long)}
+.rx-item .cb svg{width:16px;height:16px}
+.rx-item .cb path{fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24}
+.rx-item b{display:block;font-size:15px}
+.rx-item i{font-style:normal;font-size:13px;opacity:.65}
+.rx-item.done{background:rgba(15,157,138,.1)}
+.rx-item.done .cb{background:var(--ac);border-color:var(--ac);transform:scale(1.06)}
+.rx-item.done .cb path{animation:draw .45s var(--ease-out) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.rx-count{text-align:center;font-family:'Unbounded';font-size:15px;margin-top:20px;transition:transform .3s}
+.rx-count.bump{animation:bump .4s var(--ease-out)}
+@keyframes bump{40%{transform:scale(1.25)}}
+.s6-next{display:flex;justify-content:center;margin-top:32px}
+
+/* ============ ЭТАП 7: ФИНАЛ ============ */
+#s7{--bg:#0b1026;--ink:#f4f2ff;--ac:#ffd166}
+#s7 .stage-bg{position:absolute;inset:0;background:linear-gradient(180deg,#0b1026 0%,#161238 60%,#1d1440 100%);z-index:0}
+#s7 .decor{z-index:2}
+.star{position:absolute;width:2.5px;height:2.5px;border-radius:50%;background:#fff;animation:tw var(--dur,3s) ease-in-out infinite;animation-delay:var(--del,0s)}
+@keyframes tw{0%,100%{opacity:.15}50%{opacity:.9}}
+.big-hb{font-family:'Unbounded';font-weight:800;font-size:clamp(30px,6.4vw,58px);line-height:1.12;text-align:center;background:linear-gradient(100deg,#ffd166,#ff8fa3,#b79cff);-webkit-background-clip:text;background-clip:text;color:transparent;margin:6px auto 26px;max-width:16ch}
+.fin-cols{columns:2;column-gap:34px;font-size:15.5px;line-height:1.7;max-width:760px;margin:0 auto 20px}
+.fin-cols p{break-inside:avoid;margin-bottom:14px}
+.wishes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:30px 0}
+.wish{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:22px 20px;transition:transform .55s var(--ease-long),border-color .4s,background .4s}
+.wish:hover{transform:translateY(-8px) rotate(-1deg);border-color:var(--ac);background:rgba(255,209,102,.08)}
+.wish .em{font-size:26px;display:block;margin-bottom:12px}
+.wish b{font-family:'Unbounded';font-size:14px;display:block;margin-bottom:6px}
+.wish i{font-style:normal;font-size:13px;opacity:.7;line-height:1.5;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:26px 0 8px}
+.chip{font:600 11px 'Oswald';letter-spacing:.16em;text-transform:uppercase;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.25);opacity:.7;transition:all .45s var(--ease-long)}
+.chip:hover{opacity:1;border-color:var(--ac);color:var(--ac);transform:translateY(-2px)}
+.sig-line{text-align:center;margin-top:26px;font-size:14px;opacity:.8}
+.belt-zone{text-align:center;margin-top:60px}
+.belt-zone .whisper{font:600 12px 'Oswald';letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:18px}
+#beltBtn{width:120px;height:120px;border-radius:50%;border:2px solid var(--ac);color:var(--ac);font-size:40px;display:grid;place-items:center;margin:0 auto;transition:all .5s var(--ease-long);position:relative}
+#beltBtn::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px dashed rgba(255,209,102,.4);animation:spin 14s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#beltBtn:hover{transform:scale(1.08);background:rgba(255,209,102,.1)}
+#warp{position:fixed;inset:0;z-index:130;pointer-events:none;opacity:0;transition:opacity .5s}
+#warp.on{opacity:1}
+.final-msg{position:fixed;inset:0;z-index:160;display:grid;place-items:center;text-align:center;background:rgba(7,7,10,.82);backdrop-filter:blur(6px);padding:20px}
+.final-msg .fm-in{opacity:0;transform:scale(.85);transition:all .9s var(--ease-out) .15s}
+.final-msg.show .fm-in{opacity:1;transform:none}
+.final-msg h3{font-family:'Unbounded';font-weight:800;font-size:clamp(28px,6vw,54px);background:linear-gradient(100deg,#ffd166,#ff8fa3,#b79cff);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:16px}
+.final-msg p{opacity:.85;margin-bottom:26px}
+body.shake{animation:shakeB .5s var(--ease-io)}
+@keyframes shakeB{0%,100%{transform:translate(0)}20%{transform:translate(-7px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
+#confetti{position:fixed;inset:0;z-index:150;pointer-events:none}
+
+@media (max-width:560px){
+  .fin-cols{columns:1}
+  .stage{padding-top:66px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= НАЧАЛЬНАЯ СЦЕНА: ГАЗЕТА ================= -->
+<div id="paper">
+  <div class="paper">
+    <div class="paper-inner">
+      <header class="masthead fx">
+        <div class="mast-top"><span>Ежедневное издание</span><span>Выпуск №404</span><span>27.10.2026</span></div>
+        <div class="molnia">МОЛНИЯ!</div>
+        <div class="mast-title">НОВОСТЬ ДНЯ</div>
+        <div class="mast-sub">газета срочных и не очень событий <b> · Розыск</b></div>
+      </header>
+
+      <h1 class="headline fx">Разыскивается за расизм к Steam Deck</h1>
+      <p class="col fx">Владелец Nintendo Switch обвиняется в многолетней дискриминации портативных конкурентов. Вооружён широкими джой-конами, обаянием и подозрительно хорошим настроением. По данным редакции, опасен только для самолюбия владельцев Steam Deck.</p>
+      <div class="byline fx">Корр. В. Паникёрский · отдел происшествий · фото: пресс-служба</div>
+
+      <p class="lead fx">Сегодня утром в редакцию поступили сразу три сигнала: из отдела нравственности, из клуба любителей портативного гейминга и от соседей, которым «опять что-то не так». Все три указывали на одного человека — Святослава Р., в узких кругах известного как Слава. По версии следствия, гражданин годами допускал высказывания о Steam Deck, которые эксперты классифицируют как «переходящие в нетерпимость», — и делал это, что особенно дерзко, в прямом эфире Первого канала.</p>
+      <p class="col fx">Материалы дела собраны в один пухлый том. Фигурант называл консоль «экраном с ушами, который зачем-то научился греться», её библиотеку — «симулятором пыльной полки, много во что не поиграешь», а в одном из эпизодов, по словам очевидцев, «демонстративно и с особым удовольствием запустил свою игру прямо рядом с человеком, который гордо держал в руках Дек». Свидетели отдельно отмечают: лицо подозреваемого в этот момент было «возмутительно счастливым».</p>
+
+      <figure class="fx">
+        <img class="ph" src="1.png" alt="Вещдок №1">
+        <figcaption>ВЕЩДОК №1. Подозреваемый запечатлён в момент правонарушения: играет и позволяет говорить подобные вещи.</figcaption>
+      </figure>
+
+      <p class="col fx">Следствие отмечает отягчающее обстоятельство: консоль фигуранта прошита, а штатные джой-коны давно заменены на широкие. Эксперты назвали это «набором веса в портативе». "Никакой случайности - это красно-синий пират века", — сообщил наш анонимный источник. Анонимность он попросил потому, что сам играет на эмуляторе. И, судя по голосу, очень доволен.</p>
+
+      <blockquote class="quote fx">«Мы видим устойчивую модель. Человек не просто выбирает свою консоль — он делает это с удовольствием, с пальцем в попе и в хорошей компании. А это, простите, уже не выбор платформы. Это образ жизни. А у образа жизни, сами понимаете, есть статья».
+        <cite>— Аркадий Пупкин, ведущий специалист Института портативных исследований (и ковыряний в попе)</cite>
+      </blockquote>
+
+      <figure class="fx">
+        <img class="ph" src="2.png" alt="Фото из архива">
+        <figcaption>ФОТО ИЗ АРХИВА. Подозреваемый в естественной среде обитания уже 5 часов без остановки. Счастлив, и это раздражает следствие.</figcaption>
+      </figure>
+
+      <p class="col fx">Сообщество Steam Deck от комментариев отказалось, но, по данным редакции, поставило реакцию. В компании-производителе ситуацию назвали «внутренним делом портативного сообщества» и попросили не отвлекать их от обновления прошивки, которое «вот-вот, уже почти, ещё чуть-чуть увеличит время жизни аппарата».</p>
+      <p class="col fx">У подозреваемого обнаружилось алиби: он просто сидел дома и играл в игру за one hungred fingers... Как обычно. Близкие подтверждают и разводят руками. Более того, на месте происшествия не найдено ничего, кроме лишней пары оригинальных джойконов, — следствие приобщило их к делу и характеризует как улику.</p>
+      <p class="col fx">Задержание не проводилось и не планируется. По оперативным данным, фигурант находится на важном игровом задании и покидать его не собирается. Правоохранительные органы просят не волноваться: по оценке специалистов, подозреваемый безопасен, но стоит держать ухо в остро: GTA 7 уже портируется под Nintendo Switch, а Deck-юзеры разыскивают умельца.</p>
+      <p class="col fx"><b style="color:var(--red)">От редакции.</b> Если вы встретили Святослава — не убегайте и не прячьте свои консоли. Передайте ему fisting за ушко и скажите, что внизу этой страницы его очень ждёт один человек. <bold>Очень</bold>.</p>
+
+      <h3 class="fx" style="font-family:Oswald;letter-spacing:.14em;text-transform:uppercase;margin-top:30px;font-size:15px">Комментарии (3)</h3>
+      <div class="comments">
+        <div class="cmt fx"><b>@big_dickfan2026</b><small style="font-size: 0.5em;">(мой ник DECKfun**)</small> Наконец-то его найдут. Мой Дек заслуживает уважения и спокойной тихой не-консоль-расистской вентиляции.</div>
+        <div class="cmt fx"><b>@Галя_Маструбатовна_из_Чехова</b>Он занимал мне один полностью заряженный джойкон в прошлом году и даже не спросил обратно. СтимДэк так не может!!!! Отпустите его немедленно!!</div>
+        <div class="cmt fx"><b>@valve_official</b>Без комментариев. 2+1 = 4. (реакция: 🔫😊)</div>
+      </div>
+
+      <div class="ticker fx" data-fx="blur">
+        <div class="ticker-track" id="tickerTrack">
+          <span>Опрос: 87% владельцев джой-конов считают широкие джой-коны это SWAG</span>
+          <span>Эксперты выяснили, куда уезжают хорошие специалисты. Хорошие специалисты вернулись</span>
+          <span>Прогноз на 27-е: у одного очень важного человека белая спина. Дебаф: вероятность быть замеченным другими — 100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOID ZONE: переход в черноту -->
+  <div class="void-zone" id="voidZone">
+    <div class="void-text" id="voidText1">Ну что...</div>
+    <div class="void-text" id="voidText2">Начнем...</div>
+  </div>
+</div>
+
+<!-- ================= ЭТАП 1: ЛИЧНО В РУКИ ================= -->
+<section class="stage" id="s1" hidden>
+  <header class="stage-head">
+    <span class="eyebrow">Этап 01 / 07 · Вступление</span>
+    <h2>Лично в руки</h2>
+    <div class="rule"></div>
+  </header>
+  <div class="stage-body">
+    <p class="p-text fx">Всё, что ты только что прочитал, — шоб ты поржал, покекал, а может даже испугался.. кто его знает. Это начало личного дела, собранного в единственном экземпляре для одного человека: <b>Святослава Романова</b>. Он же Слава. Он же Славик. Он же Святоша. Он же Свят. Он же Славочка. Он же Сливки. Он же Sviatoslav. Он же ♂𝙎𝙡𝙖𝙫𝙚 𝙎𝙚𝙭-𝙈𝙖𝙘𝙝𝙞𝙣𝙚♂. 💀</p>
+    <p class="p-text fx">Дальнейшие материалы засекречены и разбиты на несколько этапов. Порядок прохождения — строго по порядку. Настроение — строго одно. Для доступа к первому этапу требуется подтверждение личности.</p>
+    <div class="dossier fx" data-fx="scale">
+      <div class="dossier-top"><span>Дело № 69-67</span><span>Совершенно секретно</span></div>
+      <div class="redline" style="width:82%"></div>
+      <div class="redline" style="width:64%"></div>
+      <div class="redline" style="width:90%"></div>
+      <div class="pad">
+        <button class="fp-btn" id="fpBtn" aria-label="Удерживай для подтверждения личности">
+          <svg class="fp-ring" viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="54"/><circle class="pr" id="fpRing" cx="60" cy="60" r="54"/></svg>
+          <svg class="fp-glyph" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M20 52c-4-6-6-12-6-18a18 18 0 0 1 36 0c0 6-1 12-3 17"/>
+            <path d="M25 55c-3-6-4.5-12-4.5-21a11.5 11.5 0 0 1 23 0c0 8-1.5 13-3.5 18"/>
+            <path d="M30 56c-1.6-5-2.5-11-2.5-22a7.5 7.5 0 0 1 15 0c0 10-2 16-4 21"/>
+            <path d="M36 55c1.4-4.5 2.5-9.5 2.5-15"/>
+          </svg>
+          <span class="fp-pulse"></span>
+        </button>
+        <div class="pad-pct" id="fpPct">0%</div>
+        <div class="pad-hint">Допускаются только избранные — удерживай палец на отпечатке</div>
+      </div>
+      <div class="stamp" id="fpStamp">ДОПУСК ✓</div>
+    </div>
+    <div class="s1-next"><button class="btn" id="s1Next" hidden>Открыть дело →</button></div>
+  </div>
+</section>
+
+<!-- ================= ЭТАП 2: ИГРОВОЙ ЗАЛ ================= -->
+<section class="stage" id="s2" hidden>
+  <div class="decor"></div>
+  <header class="stage-head">
+    <span class="eyebrow">Этап 02 / 07 · Игровой зал</span>
+    <h2>Кооп на паузе</h2>
+    <div class="rule"></div>
+  </header>
+  <div class="stage-body">
+    <p class="p-text fx">Начну с важного: твой Switch — это не просто детская игрушка - нет - это способ расслабиться и пообщаться на различные темы в перемешку с соревновательно-угарными эмоциями.</p>
+    <p class="p-text fx">Есть полка в памяти, куда я ставлю вечера, когда ты приезжал с пакетом сухариков, включал нинку и время тихо девалось. Хорошие были вечера. Лучшие. Быт потом растащил нас по углам, но кооп из-за этого не удалился — он просто на паузе.</p>
+    <p class="p-text fx"><b>Мои</b> пожелания на этот счет простые: чтобы джойконы не дрейфовали, батарея доживала до последнего босса, места всегда хватало, а причин сесть рядом становилось больше, чем причин разойтись. </p>
+    <p class="p-text fx" style="opacity:.65;font-size:14px">(а ну и чтобы Switch 2 взломали и Nintendo сделала уже свои продукты дешевле - а то <b>астахуели совсем</b>))</p>
+    <p class="p-text fx" style="opacity:.65;font-size:14px">Пропуск дальше — комбинация клавиш. Собери её в правильном порядке:</p>
+    <div class="seq fx" data-fx="scale" id="seqRow">
+      <div class="slot">X</div><div class="slot">Y</div><div class="slot">A</div><div class="slot">B</div>
+    </div>
+    <div class="joy-card fx" data-fx="scale">
+      <button class="gbtn gx" data-k="X">X</button>
+      <button class="gbtn gy" data-k="Y">Y</button>
+      <button class="gbtn ga" data-k="A">A</button>
+      <button class="gbtn gb" data-k="B">B</button>
+    </div>
+    <div class="s2-next"><button class="btn" id="s2Next" hidden>Следующий зал →</button></div>
+  </div>
+</section>
+
+<!-- ================= ЭТАП 3: НЕЙРООТДЕЛ ================= -->
+<section class="stage" id="s3" hidden>
+  <div class="decor"></div>
+  <header class="stage-head">
+    <span class="eyebrow">Этап 03 / 07 · Нейроотдел</span>
+    <h2>Сгенерировано с любовью</h2>
+    <div class="rule"></div>
+  </header>
+  <div class="stage-body">
+    <p class="p-text fx">Да - это правда что ИИ становится №1 инструментом у каждого третьего. И да - я также пользовался ею при написании всего что ты уже увидил и всего того что ты увидишь далее. Знаешь, ИИ давно может стать заменой чего угодно: от секретаря - до работодателя. Но в одном я уверен на 100% - <b>без работы ты точно никогда не останешься и твой заработок никогда не упадет.</b> Датчики подсказывают, что этот год, как и все последующие, будут также замечательны. Винить в этом будем конечно же <b>тебя</b>.</p>
+    <div class="term fx" data-fx="blur">
+      <div class="term-bar"><i></i><i></i><i></i><span>SLAVA-GPT · отдел автоматики</span></div>
+      <div class="term-body" id="termBody"></div>
+    </div>
+    <div class="temp fx"><span>TEMP</span><div class="bar"><i id="tempBar"></i></div><span id="tempVal">0.90 · повышена</span></div>
+    <div style="display:flex;justify-content:center;margin-top:26px" class="fx"><button class="btn" id="genBtn">▶ Сгенерировать приятности</button></div>
+    <p class="fx" style="text-align:center;font-size:12px;opacity:.5;margin-top:10px">кнопку можно нажимать повторно — модель старается и расстраивается, когда её не читают</p>
+    <div class="s3-next"><button class="btn ghost" id="s3Next" hidden>Принять и дальше →</button></div>
+  </div>
+</section>
+
+<!-- ================= ЭТАП 4: ГАРАЖ ================= -->
+<section class="stage" id="s4" hidden>
+  <div class="decor">
+    <span class="ln" style="top:18%;--dur:1.3s;--del:0s"></span>
+    <span class="ln" style="top:34%;--dur:1.05s;--del:.4s"></span>
+    <span class="ln" style="top:52%;--dur:1.4s;--del:.2s"></span>
+    <span class="ln" style="top:68%;--dur:.95s;--del:.7s"></span>
+    <span class="ln" style="top:82%;--dur:1.2s;--del:.5s"></span>
+  </div>
+  <header class="stage-head">
+    <span class="eyebrow">Этап 04 / 07 · Гараж</span>
+    <h2>Полный бак</h2>
+    <div class="rule"></div>
+  </header>
+  <div class="stage-body">
+    <p class="p-text fx">У тебя есть мотоцикл, и это многое проясняет. Человек, который выбирает дорогу на двух колёсах, умеет держать равновесие даже тогда, когда всё вокруг шатается. Ты это умеешь на все 300%.</p>
+    <p class="p-text fx">Пусть сезоны будут длинными всегда, асфальт — ровным, инспекторы — не часто встречаемыми, а дальние путешествия мимолетными и приятно запоминающимися. Ах да, пусть машина всегда заводится с полоборота — просто на всякий случай. Что б ниодна лошадка не вырвалась из под капота!). <b>Газуй!</b></p>
+    <div class="gauge-wrap fx" data-fx="scale">
+      <svg class="gauge" id="gaugeSvg" viewBox="0 0 240 150">
+        <path class="bg-arc" d="M30 130 A90 90 0 0 1 210 130"/>
+        <path class="fg-arc" id="gaugeArc" d="M30 130 A90 90 0 0 1 210 130"/>
+        <g id="ticks"></g>
+        <line class="needle" id="needle" x1="120" y1="130" x2="120" y2="52" transform="rotate(-120 120 130)"/>
+        <circle class="hub" cx="120" cy="130" r="7"/>
+      </svg>
+      <div class="speedo"><span id="kmh">0</span><small>км/ч · проверка двигателя</small></div>
+      <button class="gas" id="gasBtn">ГАЗ</button>
+      <div class="gas-hint">держи, пока стрелка не упрётся</div>
+    </div>
+    <div class="s4-next"><button class="btn" id="s4Next" hidden>Поехали дальше →</button></div>
+  </div>
+</section>
+
+<!-- ================= ЭТАП 5: ДОМ ================= -->
+<section class="stage" id="s5" hidden>
+  <div class="decor">
+    <span class="dust" style="left:14%;top:70%;--dur:8s;--del:0s"></span>
+    <span class="dust" style="left:28%;top:82%;--dur:10s;--del:1.4s"></span>
+    <span class="dust" style="left:58%;top:76%;--dur:9s;--del:.6s"></span>
+    <span class="dust" style="left:74%;top:66%;--dur:11s;--del:2s"></span>
+    <span class="dust" style="left:88%;top:80%;--dur:8.5s;--del:1s"></span>
+  </div>
+  <header class="stage-head">
+    <span class="eyebrow">Этап 05 / 07 · Дом</span>
+    <h2>Тёплое письмо</h2>
+    <div class="rule"></div>
+  </header>
+  <div class="stage-body">
+    <p class="p-text fx">Есть вещи, которые не ломаются, даже когда всё остальное стоит «на консервативном лечении». Например, люди, которые рядом. На твоё имя пришёл конверт. Вскрывай.</p>
+    <div class="env-scene fx" data-fx="scale" id="envScene">
+      <button class="envelope" id="envelope" aria-label="Открыть конверт">
+        <div class="env-back"></div>
+        <div class="env-letter">Слава, это о крепкости ↓</div>
+        <div class="env-front"></div>
+        <div class="env-flap"></div>
+        <div class="env-seal">С</div>
+      </button>
+      <div class="gas-hint" style="color:inherit;opacity:.55">нажми на конверт, чтобы открыть</div>
+    </div>
+    <div class="letter-full" id="letterFull" hidden>
+      <p><b>Слава - это о крепкости.</b></p>
+      <p>Дом — это не стены и не квадратные метры. Дом — это люди, которые ждут тебя независимо от твоего состояния: и с бумажками, и с анализами, и просто уставшим.</p>
+      <p>Этот отрезок вы с Алиной тащите вдвоём: кабинеты, очереди, ожидания, аппеляции. Это тяжело и вы такие молодцы что держитесь друг за друга. Именно так выглядит самая прочная связь друг с другом - забота.</p>
+      <p>Пусть дом остаётся местом, где можно выдохнуть. Местом, где ты забываешь все те повседневные проблемы с которыми ежедневно сталкиваешься.</p>
+      <p>Берегите друг друга. Это и есть пожелание.</p>
+      <p class="sig">С уважением, тот самый айтишник.</p>
+      <div class="cert" id="cert">
+        <b>СЕРТИФИКАТ №001 · НЕГОРЯЩИЙ</b>
+        Предъявитель имеет право на набор стикеров с котом. Требования приняты, исполнение неизбежно. Срок годности: бессрочно. Дата исполнения: хммм...))
+        <span class="seal">🐈</span>
+      </div>
+    </div>
+    <div class="s5-next"><button class="btn" id="s5Next" hidden>Запечатать и дальше →</button></div>
+  </div>
+</section>
+
+<!-- ================= ЭТАП 6: МЕДОТСЕК ================= -->
+<section class="stage" id="s6" hidden>
+  <header class="stage-head">
+    <span class="eyebrow">Этап 06 / 07 · Медотсек</span>
+    <h2>Рецепт на год</h2>
+    <div class="rule"></div>
+  </header>
+  <div class="stage-body">
+    <p class="p-text fx">Про здоровье — без пафоса и без «держись». В этом году ты выучил больше аббревиатур, чем за всю остальную жизнь, и узнал расписание болезней почти наизусть. Пусть эпоха комиссий закончится одной бумагой — той самой, после которой все кабинеты выучат слово «окончательно».</p>
+    <p class="p-text fx">Хороших специалистов в регионах всё меньше, за действительно хорошими иногда приходится ехать в Москву. Желаю чтобы тебе всегда попадались лучшие из лучших и лечения действительно помогали. Да и вообще, чтобы не было у тебя в жизни предварительных диагнозов!</p>
+    <div class="rx fx" data-fx="scale">
+      <div class="rx-head"><span class="cross">✚</span><b>Рецепт №1000-7</b><span>побочных эффектов не выявлено</span></div>
+      <div class="rx-bar"><i id="rxBar"></i></div>
+      <div id="rxList">
+        <div class="rx-item" tabindex="0"><span class="cb"><svg viewBox="0 0 20 20"><path d="M4 10.5 8.5 15 16 5.5"/></svg></span><span><b>Сон без героизма</b><i>7+ часов, без телефона под подушкой</i></span></div>
+        <div class="rx-item" tabindex="0"><span class="cb"><svg viewBox="0 0 20 20"><path d="M4 10.5 8.5 15 16 5.5"/></svg></span><span><b>Магний по расписанию</b><i>а не когда накроет</i></span></div>
+        <div class="rx-item" tabindex="0"><span class="cb"><svg viewBox="0 0 20 20"><path d="M4 10.5 8.5 15 16 5.5"/></svg></span><span><b>ЛФК: медленно — тоже считается</b><i>клином, но без фанатизма (я надеюсь что ИИ не хуню тут написал))</i></span></div>
+        <div class="rx-item" tabindex="0"><span class="cb"><svg viewBox="0 0 20 20"><path d="M4 10.5 8.5 15 16 5.5"/></svg></span><span><b>Одна прогулка в день</b><i>желательно без новостей в наушниках</i></span></div>
+        <div class="rx-item" tabindex="0"><span class="cb"><svg viewBox="0 0 20 20"><path d="M4 10.5 8.5 15 16 5.5"/></svg></span><span><b>Идеальный врач</b><i>правильный, умный, который не ошибается</i></span></div>
+        <div class="rx-item" tabindex="0"><span class="cb"><svg viewBox="0 0 20 20"><path d="M4 10.5 8.5 15 16 5.5"/></svg></span><span><b>Одно приятное — себе, каждый день</b><i>игра, маленькая вкусняшка, что угодно</i></span></div>
+      </div>
+      <div class="rx-count" id="rxCount">ВЫПОЛНЕНО 0 / 6</div>
+    </div>
+    <div class="s6-next"><button class="btn" id="s6Next" hidden>Принять рецепт →</button></div>
+  </div>
+</section>
+
+<!-- ================= ЭТАП 7: ФИНАЛ ================= -->
+<section class="stage" id="s7" hidden>
+  <div class="stage-bg"></div>
+  <div class="decor" id="starField"></div>
+  <header class="stage-head" style="text-align:center">
+    <span class="eyebrow">Этап 07 / 07 · Финал</span>
+    <h2 style="max-width:none">Мы близки...</h2>
+    <div class="rule" style="margin-inline:auto"></div>
+  </header>
+  <div class="stage-body">
+    <div class="big-hb fx" data-fx="blur">Если ты долистал до сюда — значит, всё не зря.</div>
+    <div class="fin-cols fx" data-fx="far">
+      <p>Отрезок у тебя сейчас тяжёлый: кабинеты, ожидания, таблетки и вопросы, на которые пока нет ответов. Но ты не развалился. Держишься, шутишь и остаёшься человеком, с которым хочется сидеть до ночи под сухарики. Это редкий навык, и он, к счастью, не лечится.</p>
+      <p>Желаю три простые вещи. <b>Здоровье</b>, которое не требует подвигов. <b>Людей</b>, которые всегда идут на контакт. <b>Время</b> на всё: игры, дорогу, жену, ИИ - на все чем ты любишь и хочешь заниматься.</p>
+    </div>
+    <div class="wishes">
+      <div class="wish fx"><span class="em">🎮</span><b>Игра</b><i>без дрейфа, без лагов, с хорошей компанией</i></div>
+      <div class="wish fx" data-fx="right"><span class="em">🏍️</span><b>Дорога</b><i>ровная, спокойная, безопасная независимо от сезона</i></div>
+      <div class="wish fx" data-fx="left"><span class="em">🏠</span><b>Дом</b><i>место, где никто никуда не торопит</i></div>
+      <div class="wish fx" data-fx="scale"><span class="em">💚</span><b>Здоровье</b><i>без новых аббревиатур</i></div>
+    </div>
+    <div class="fx" style="text-align:center">
+      <p style="font:600 12px Oswald;letter-spacing:.24em;text-transform:uppercase;opacity:.55;margin-bottom:12px">Сводка по этапам · можно вернуться</p>
+      <div class="chips">
+        <button class="chip" data-go="s1">↺ 01 Допуск</button>
+        <button class="chip" data-go="s2">02 Зал</button>
+        <button class="chip" data-go="s3">03 Нейро</button>
+        <button class="chip" data-go="s4">04 Гараж</button>
+        <button class="chip" data-go="s5">05 Дом</button>
+        <button class="chip" data-go="s6">06 Мед</button>
+        <button class="chip" data-go="paper">⟲ Пройти всё заново</button>
+      </div>
+      <p class="sig-line">Собрано с ИИ, отредачены тексты вручную, с уважением и задолженностью по стикерам с котом.<br><b>— твой друг-программист</b></p>
+      <div class="belt-zone">
+        <p class="whisper">А теперь… когда ты добрался сюда… осталась последняя кнопка...</p>
+        <button id="beltBtn" aria-label="Пристегнуться">🎂</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="veil"></div>
+<canvas id="confetti"></canvas>
+<canvas id="warp"></canvas>
+<div class="final-msg" id="finalMsg" hidden>
+  <div class="fm-in">
+    <h3>С днём рождения! 🎉</h3>
+    <p>От всего сердца поздравляю тебя - мой друг - с этим прекрасным днём!🥳</p>
+	<p>С уважением, Аркадий 😸</p>
+	<p></p>
+	<p>Дальше — только интереснее...</p>
+    <button class="btn" id="fmClose" style="--ac:#ffd166">Конец поздравления💖</button>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const veil=$('#veil');
+let current=$('#paper'), busy=false;
+let voidActivated = false;
+let lastScrollY = 0;
+
+/* ---------- движок перехода между этапами ---------- */
+async function gotoStage(id){
+  if(busy) return; busy=true;
+  const next = id==='paper' ? $('#paper') : document.getElementById(id);
+  // 1) медленно уходим в темноту
+  veil.classList.add('on');
+  await sleep(850);
+  if(current){ current.hidden=true; current.classList.remove('active'); }
+  window.scrollTo(0,0);
+  next.hidden=false; next.classList.add('active');
+  const head = next.querySelector ? next.querySelector('.stage-head') : null;
+  if(head){
+    next.classList.add('noir');                    // этап встречает чёрным
+    head.classList.remove('reveal'); void head.offsetWidth;
+    head.classList.add('lift');
+    await sleep(120);
+    veil.classList.remove('on');                   // шов незаметен: оба тёмные
+    await sleep(380);
+    // 2) плавное появление заголовка
+    head.classList.add('reveal');
+    await sleep(1550);
+    // 3) медленно возвращаем цвета этапа
+    next.classList.remove('noir');
+    await sleep(1050);
+    head.classList.remove('lift');
+  } else {
+    veil.classList.remove('on');
+    await sleep(300);
+  }
+  // 4) показываем остальной контент каскадом
+  revealBody(next);
+  current=next; busy=false;
+  (onEnter[id]||(()=>{}))();
+}
+function revealBody(root){
+  root.querySelectorAll('.fx').forEach((el,i)=>{
+    if(el.dataset.d) el.style.setProperty('--d',el.dataset.d+'ms');
+    else el.style.setProperty('--d',Math.min(i*95,950)+'ms');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('in')));
+  });
+}
+function resetFx(root){ root.querySelectorAll('.fx.in').forEach(el=>el.classList.remove('in')); }
+const onEnter={
+  s3:bootTerm,
+  s7:()=>{burst(innerWidth/2,innerHeight*.3,120);if(!starsBuilt){buildStars();starsBuilt=true;}}
+};
+
+/* ---------- газета: появление по скроллу ---------- */
+(function(){
+  const track=$('#tickerTrack'); track.innerHTML+=track.innerHTML; // бесшовная бегущая строка
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  }),{threshold:.12});
+  $$('#paper .fx').forEach((el,i)=>{ el.style.setProperty('--d',(i%3)*110+'ms'); io.observe(el); });
+})();
+
+/* ---------- VOID ZONE: блокировка скролла и анимация текста ---------- */
+(function(){
+  const voidZone = $('#voidZone');
+  const text1 = $('#voidText1');
+  const text2 = $('#voidText2');
+  
+  // IntersectionObserver для детекции входа в зону
+  const voidObserver = new IntersectionObserver(async (entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting && !voidActivated){
+        voidActivated = true;
+        
+        // Блокируем скролл вверх
+        lastScrollY = window.scrollY;
+        window.addEventListener('scroll', lockScrollUp);
+        
+        // Анимация: "Ну что..."
+        setTimeout(() => {
+          text1.classList.add('visible');
+        }, 300);
+        
+        // Ждём, потом скрываем
+        setTimeout(() => {
+          text1.classList.add('fadeout');
+          text1.classList.remove('visible');
+        }, 2100);
+        
+        // Через полсекунды показываем "Начнем..."
+        setTimeout(() => {
+          text2.classList.add('visible');
+        }, 2600);
+        
+        // Ждём, потом переходим к первому этапу
+        setTimeout(() => {
+          text2.classList.add('fadeout');
+          text2.classList.remove('visible');
+        }, 4100);
+        
+        setTimeout(() => {
+          window.removeEventListener('scroll', lockScrollUp);
+          gotoStage('s1');
+        }, 4900);
+      }
+    });
+  }, {threshold: 0.5});
+  
+  voidObserver.observe(voidZone);
+  
+  function lockScrollUp(){
+    const currentScrollY = window.scrollY;
+    if(currentScrollY < lastScrollY && voidActivated){
+      // Пытаемся скроллить вверх - блокируем
+      window.scrollTo(0, lastScrollY);
+    } else {
+      lastScrollY = currentScrollY;
+    }
+  }
+})();
+
+/* ---------- ЭТАП 1: отпечаток ---------- */
+(function(){
+  const btn=$('#fpBtn'), ring=$('#fpRing'), pct=$('#fpPct'), C=339.3;
+  let p=0, holding=false, last=0, done=false, raf;
+  const draw=()=>{ ring.style.strokeDashoffset=C*(1-p); pct.textContent=Math.round(p*100)+'%'; };
+  function loop(t){
+    if(done) return;
+    const dt=t-last; last=t;
+    p = holding ? Math.min(1,p+dt/1800) : Math.max(0,p-dt/700);
+    draw();
+    if(p>=1){ finish(); return; }
+    raf=requestAnimationFrame(loop);
+  }
+  function finish(){
+    done=true; btn.classList.add('ok'); draw();
+    $('#fpStamp').classList.add('show');
+    const nx=$('#s1Next'); nx.hidden=false; nx.classList.add('pop');
+    const r=btn.getBoundingClientRect();
+    burst(r.left+75,r.top+75,50,['#e8b23d','#7ddb8a','#fff']);
+  }
+  btn.addEventListener('pointerdown',e=>{ if(done)return; btn.setPointerCapture(e.pointerId); holding=true; last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop); });
+  ['pointerup','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>holding=false));
+  $('#s1Next').addEventListener('click',()=>gotoStage('s2'));
+})();
+
+/* ---------- ЭТАП 2: комбинация XYAB ---------- */
+(function(){
+  const SEQ=['X','Y','A','B'], COLORS={X:'#00c3e3',Y:'#ffd400',A:'#ff4554',B:'#78d94e'};
+  let idx=0, solved=false;
+  const slots=$$('#seqRow .slot');
+  $$('#s2 .gbtn').forEach(b=>b.addEventListener('click',()=>{
+    if(solved) return;
+    b.classList.add('hit'); setTimeout(()=>b.classList.remove('hit'),250);
+    if(b.dataset.k===SEQ[idx]){
+      slots[idx].classList.add('done');
+      slots[idx].style.background=COLORS[b.dataset.k];
+      slots[idx].style.borderColor=COLORS[b.dataset.k];
+      idx++;
+      if(idx===SEQ.length){
+        solved=true;
+        const card=$('.joy-card');
+        card.animate([{transform:'scale(1)'},{transform:'scale(1.05)'},{transform:'scale(1)'}],{duration:500,easing:'cubic-bezier(.22,1,.36,1)'});
+        const r=card.getBoundingClientRect();
+        burst(r.left+r.width/2,r.top+r.height/2,90,Object.values(COLORS));
+        const nx=$('#s2Next'); nx.hidden=false; nx.classList.add('pop');
+      }
+    } else {
+      idx=0;
+      const row=$('#seqRow'); row.classList.remove('err'); void row.offsetWidth; row.classList.add('err');
+      slots.forEach(s=>{s.classList.remove('done');s.style.background='';s.style.borderColor='';});
+    }
+  }));
+  $('#s2Next').addEventListener('click',()=>gotoStage('s3'));
+})();
+
+/* ---------- ЭТАП 3: SLAVA-GPT ---------- */
+const GPTS=[
+ 'Анализ завершён. Выходящие данные: сухарики — 10/10, кооп — эталонный, человек — редкий. Рекомендации модели: обнять крепко, не откладывать «снять кооп с паузы», принести сок без очереди. Ошибок не обнаружено.',
+ 'Обучалась на твоих кооп-вечерах и выучила главное: счастье — это когда прошивка работает, кошка мурлыкает, а рядом люди, с которыми можно и поиграть, и поболтать. Пусть весь твой год соберётся именно так. Генерация завершена. Обнимаю — по твоим же вечерам научилась.',
+ 'Сгенерировала 1 000 000 вариантов пожеланий. Лучший, как обычно, короткий: здоровья без подвигов, дороги без инспекторов, дома — тихих вечеров. Всё остальное — в следующей версии. Спасибо, что дочитал. Модель польщена.',
+ 'Обнаружен boy-next-door у пользователя с самыми широкими джой-конами в регионе. Прогноз модели: год душевно тёплый, врачи внимательные, апдейты лёгкие, люди рядом — те самые. Подпись: нейросеть, которая тебя уважает.'
+];
+let gptIdx=0, typing=false;
+function bootTerm(){
+  const body=$('#termBody');
+  if(!body.dataset.booted){
+    body.dataset.booted=1;
+    body.innerHTML='&gt; модель: slava-gpt-26-turbo<br>&gt; контекст: «общение · сухарики · кооп»<br>&gt; температура: 0.9 (повышена)<br><span class="ok">&gt; модель готова к работе. жми кнопку.</span> <span class="caret"></span>';
+  }
+}
+async function typeInto(el,text,speed=20){
+  const caret=el.querySelector('.caret')||el.appendChild(Object.assign(document.createElement('span'),{className:'caret'}));
+  for(let i=0;i<text.length;i++){
+    caret.before(document.createTextNode(text[i]));
+    if(i%3===0) await sleep(speed+Math.random()*22);
+  }
+}
+$('#genBtn').addEventListener('click',async()=>{
+  if(typing) return; typing=true;
+  const body=$('#termBody');
+  $('#tempVal').textContent=(0.86+Math.random()*.18).toFixed(2)+' · повышена';
+  $('#tempBar').style.width=(45+Math.random()*50)+'%';
+  body.innerHTML='&gt; калибрую душевность… <span class="caret"></span>';
+  await sleep(600);
+  body.innerHTML='&gt; калибрую душевность… <span class="ok">[OK]</span><br>';
+  const line=document.createElement('div'); line.className='msg'; body.appendChild(line);
+  await typeInto(line,GPTS[gptIdx++ % GPTS.length]);
+  const nx=$('#s3Next');
+  if(nx.hidden){ nx.hidden=false; nx.classList.add('pop'); }
+  typing=false;
+});
+$('#s3Next').addEventListener('click',()=>gotoStage('s4'));
+
+/* ---------- ЭТАП 4: газ ---------- */
+(function(){
+  const ticks=$('#ticks');
+  for(let i=0;i<=10;i++){
+    const a=(-120+i*24)*Math.PI/180, r1=78, r2=88;
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('class','tick');
+    l.setAttribute('x1',120+r1*Math.sin(a)); l.setAttribute('y1',130-r1*Math.cos(a));
+    l.setAttribute('x2',120+r2*Math.sin(a)); l.setAttribute('y2',130-r2*Math.cos(a));
+    ticks.appendChild(l);
+  }
+  const btn=$('#gasBtn'), svg=$('#gaugeSvg'), arc=$('#gaugeArc'), needle=$('#needle'), kmh=$('#kmh'), C=439.8;
+  let p=0, hold=false, last=0, full=false;
+  function draw(){
+    arc.style.strokeDashoffset=C*(1-p);
+    needle.setAttribute('transform',`rotate(${-120+p*240} 120 130)`);
+    kmh.textContent=Math.round(p*168);
+  }
+  function loop(t){
+    const dt=Math.min(50,t-last); last=t;
+    if(!full){ p=hold?Math.min(1,p+dt/2200):Math.max(0,p-dt/900); draw(); }
+    svg.classList.toggle('vibe',hold&&!full);
+    $('#s4').classList.toggle('riding',p>0.04||hold);
+    if(p>=1&&!full){
+      full=true; btn.classList.add('full'); btn.textContent='ПОЛНЫЙ БАК';
+      const r=btn.getBoundingClientRect();
+      burst(r.left+r.width/2,r.top+r.height/2,80,['#ff8a1e','#ffd166','#fff']);
+      const nx=$('#s4Next'); nx.hidden=false; nx.classList.add('pop');
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(t=>{last=t;loop(t);});
+  btn.addEventListener('pointerdown',e=>{btn.setPointerCapture(e.pointerId);hold=true;});
+  ['pointerup','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>hold=false));
+  $('#s4Next').addEventListener('click',()=>gotoStage('s5'));
+})();
+
+/* ---------- ЭТАП 5: конверт ---------- */
+(function(){
+  let opened=false;
+  $('#envelope').addEventListener('click',function(){
+    if(opened) return; opened=true;
+    this.classList.add('open');
+    setTimeout(()=>{
+      $('#envScene').hidden=true;
+      const lf=$('#letterFull'); lf.hidden=false; lf.classList.add('unfold');
+      setTimeout(()=>$('#cert').classList.add('stamped'),900);
+      const nx=$('#s5Next'); nx.hidden=false; nx.classList.add('pop');
+    },950);
+  });
+  $('#s5Next').addEventListener('click',()=>gotoStage('s6'));
+})();
+
+/* ---------- ЭТАП 6: рецепт ---------- */
+(function(){
+  const items=$$('#rxList .rx-item'); let done=0;
+  items.forEach(it=>{
+    const toggle=()=>{
+      if(it.classList.contains('done')) return;
+      it.classList.add('done'); done++;
+      $('#rxBar').style.width=(done/items.length*100)+'%';
+      const c=$('#rxCount');
+      c.textContent = done===items.length ? 'ПРИНЯТО 6 / 6 ✓' : `ВЫПОЛНЕНО ${done} / 6`;
+      c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
+      if(done===items.length){
+        const nx=$('#s6Next'); nx.hidden=false; nx.classList.add('pop');
+        const r=$('.rx').getBoundingClientRect();
+        burst(r.left+r.width/2,r.top+60,60,['#0f9d8a','#e2574c','#fff']);
+      }
+    };
+    it.addEventListener('click',toggle);
+    it.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});
+  });
+  $('#s6Next').addEventListener('click',()=>gotoStage('s7'));
+})();
+
+/* ---------- ЭТАП 7: чипы, финал, звёзды ---------- */
+$$('.chip').forEach(c=>c.addEventListener('click',()=>{
+  if(c.dataset.go==='paper'){ resetAll(); }
+  gotoStage(c.dataset.go);
+}));
+let starsBuilt=false;
+function buildStars(){
+  const f=$('#starField');
+  for(let i=0;i<44;i++){
+    const s=document.createElement('span'); s.className='star';
+    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%';
+    s.style.setProperty('--dur',(2+Math.random()*3.5)+'s');
+    s.style.setProperty('--del',(Math.random()*3)+'s');
+    f.appendChild(s);
+  }
+}
+
+/* ---------- конфетти ---------- */
+const cvs=$('#confetti'), ctx=cvs.getContext('2d');
+let parts=[], confRaf=null;
+function sizeCvs(){cvs.width=innerWidth;cvs.height=innerHeight;
+  const w=$('#warp');w.width=innerWidth;w.height=innerHeight;}
+addEventListener('resize',sizeCvs); sizeCvs();
+function burst(x,y,n,colors=['#ffd166','#ff8fa3','#00c3e3','#78d94e','#fff']){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, v=3+Math.random()*7;
+    parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-3,g:.16+Math.random()*.08,
+      rot:Math.random()*6.3,vr:(Math.random()-.5)*.3,w:5+Math.random()*6,h:3+Math.random()*5,
+      c:colors[i%colors.length],life:90+Math.random()*60});
+  }
+  if(!confRaf) confRaf=requestAnimationFrame(stepConf);
+}
+function stepConf(){
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  parts=parts.filter(p=>p.life>0&&p.y<cvs.height+40);
+  for(const p of parts){
+    p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.vx*=.99;p.rot+=p.vr;p.life--;
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+    ctx.globalAlpha=Math.min(1,p.life/40);ctx.fillStyle=p.c;
+    ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+  }
+  confRaf = parts.length ? requestAnimationFrame(stepConf) : null;
+  if(!parts.length) ctx.clearRect(0,0,cvs.width,cvs.height);
+}
+
+/* ---------- варп-финал ---------- */
+$('#beltBtn').addEventListener('click',()=>{
+  const w=$('#warp'), wc=w.getContext('2d');
+  w.classList.add('on'); document.body.classList.add('shake');
+  const stars=Array.from({length:230},()=>({
+    x:(Math.random()-.5)*w.width, y:(Math.random()-.5)*w.height, z:Math.random()*w.width
+  }));
+  let speed=4, t0=performance.now();
+  (function warp(t){
+    const el=t-t0; speed=4+el*0.012;
+    wc.fillStyle='rgba(7,7,12,.4)'; wc.fillRect(0,0,w.width,w.height);
+    wc.save(); wc.translate(w.width/2,w.height/2);
+    for(const s of stars){
+      const pz=s.z; s.z-=speed;
+      if(s.z<1){s.x=(Math.random()-.5)*w.width;s.y=(Math.random()-.5)*w.height;s.z=w.width;}
+      const k=260/s.z, pk=260/pz;
+      wc.strokeStyle=`rgba(${200+Math.random()*55},${200+Math.random()*40},255,${Math.min(1,speed/30+.25)})`;
+      wc.lineWidth=Math.min(3,2.2*k);
+      wc.beginPath(); wc.moveTo(s.x*pk,s.y*pk); wc.lineTo(s.x*k,s.y*k); wc.stroke();
+    }
+    wc.restore();
+    if(el<2600) requestAnimationFrame(warp);
+    else{
+      w.classList.remove('on'); document.body.classList.remove('shake');
+      const fm=$('#finalMsg'); fm.hidden=false;
+      requestAnimationFrame(()=>fm.classList.add('show'));
+      burst(innerWidth*.3,innerHeight*.35,120);
+      burst(innerWidth*.7,innerHeight*.45,120);
+    }
+  })(t0);
+});
+$('#fmClose').addEventListener('click',()=>{
+  const fm=$('#finalMsg'); fm.classList.remove('show');
+  setTimeout(()=>fm.hidden=true,500);
+});
+
+/* ---------- перезапуск ---------- */
+function resetAll(){
+  const fp=$('#fpBtn'); fp.classList.remove('ok');
+  $('#fpRing').style.strokeDashoffset=339.3; $('#fpPct').textContent='0%';
+  $('#fpStamp').classList.remove('show'); $('#s1Next').hidden=true;
+  $$('#seqRow .slot').forEach(s=>{s.classList.remove('done');s.style.background='';s.style.borderColor='';});
+  $('#s2Next').hidden=true;
+  delete $('#termBody').dataset.booted; $('#s3Next').hidden=true;
+  const gas=$('#gasBtn'); gas.classList.remove('full'); gas.textContent='ГАЗ'; $('#s4Next').hidden=true;
+  $('#envelope').classList.remove('open'); $('#envScene').hidden=false;
+  $('#letterFull').hidden=true; $('#letterFull').classList.remove('unfold');
+  $('#cert').classList.remove('stamped'); $('#s5Next').hidden=true;
+  $$('#rxList .rx-item').forEach(i=>i.classList.remove('done'));
+  $('#rxBar').style.width='0'; $('#rxCount').textContent='ВЫПОЛНЕНО 0 / 6'; $('#s6Next').hidden=true;
+  $$('.stage').forEach(resetFx); resetFx($('#paper'));
+  voidActivated = false;
+  $('#voidText1').classList.remove('visible','fadeout');
+  $('#voidText2').classList.remove('visible','fadeout');
+}
+</script>
+</body>
+</html>
